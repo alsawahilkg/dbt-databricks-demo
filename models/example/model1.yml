@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: model1
+    tests:
+      - dbt_expectations.expect_table_column_count_to_equal:
+          value: 4
+    columns:
+      - name: customerID
+        description: "customerID"
+        tests:
+          - assert_no_null_values_sql
+          - unique
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 2100259
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: bigint
+          # - relationships:
+          #     to: ref('model2')
+          #     field: customerID
+      - name: first_name
+        description: "first_name"
+        tests:
+          - assert_no_null_values_sql
+          - unique
+          - dbt_utils.at_least_one
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "= 'Kayla'"
+              config:
+                where: "last_name = 'Barrettt'"
+
+      - name: last_name
+        description: "{{ doc('demo_comment') }}"
+        tests:
+          - assert_no_null_values_sql
+          - unique
+          - dbt_utils.not_empty_string:
+              severity: error
+
+      - name: gender
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["male", "female"]
